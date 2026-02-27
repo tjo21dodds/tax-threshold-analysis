@@ -12,6 +12,7 @@ from tax_analysis import (
     HIGHER_RATE_LIMIT,
     TAPER_THRESHOLD,
     TAX_RATES,
+    ANNUAL_RPI,
     effective_personal_allowance,
     compute_tax,
     total_revenue,
@@ -183,3 +184,41 @@ class TestBuildScenarios:
         """Frozen thresholds + wage growth → revenue increases each year."""
         revenues = self.df["Frozen Thresholds (£bn)"].tolist()
         assert all(revenues[i] <= revenues[i + 1] for i in range(len(revenues) - 1))
+
+
+class TestBuildScenariosRPI:
+    def setup_method(self):
+        self.df = build_scenarios()
+
+    def test_rpi_column_present(self):
+        """RPI-Uprated column should be present in the output."""
+        assert "RPI-Uprated (£bn)" in self.df.columns
+
+    def test_rpi_uprated_between_cpi_and_wages(self):
+        """With default rates (RPI > CPI, RPI < wage growth), RPI-uprated revenue
+        should be between inflation-uprated and wage-growth-uprated revenue."""
+        for _, row in self.df.iterrows():
+            assert row["RPI-Uprated (£bn)"] <= row["Inflation-Uprated (£bn)"], (
+                f"RPI-uprated should be <= CPI-uprated for {row['Tax Year']}"
+            )
+            assert row["RPI-Uprated (£bn)"] >= row["Wage-Growth-Uprated (£bn)"], (
+                f"RPI-uprated should be >= wage-uprated for {row['Tax Year']}"
+            )
+
+    def test_frozen_exceeds_rpi_uprated(self):
+        """Frozen thresholds should raise more revenue than RPI-uprated thresholds."""
+        for _, row in self.df.iterrows():
+            assert row["Frozen Thresholds (£bn)"] >= row["RPI-Uprated (£bn)"], (
+                f"Failed for {row['Tax Year']}"
+            )
+
+    def test_custom_rates_accepted(self):
+        """build_scenarios() should accept custom rpi/cpi/wage rate arguments."""
+        df_custom = build_scenarios(rpi_rate=0.04, cpi_rate=0.02, wage_rate=0.05)
+        assert isinstance(df_custom, pd.DataFrame)
+        assert len(df_custom) == PROJECTION_YEARS + 1
+
+    def test_annual_rpi_constant_positive(self):
+        """ANNUAL_RPI should be a positive float."""
+        assert isinstance(ANNUAL_RPI, float)
+        assert ANNUAL_RPI > 0
