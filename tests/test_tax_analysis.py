@@ -3,7 +3,6 @@ Unit tests for tax_analysis.py
 """
 
 import math
-import pytest
 import pandas as pd
 
 from tax_analysis.tax_analysis import (
@@ -78,11 +77,7 @@ class TestComputeTax:
     def test_additional_rate_kicks_in(self):
         """Income above £125,140 should attract the additional (45 %) rate."""
         income = HIGHER_RATE_LIMIT + 20_000  # £145,140
-        # At this income the personal allowance has fully tapered to zero
-        basic_band  = BASIC_RATE_LIMIT  - PERSONAL_ALLOWANCE
-        higher_band = HIGHER_RATE_LIMIT - BASIC_RATE_LIMIT
-        # eff_pa = 0 at this income, so taxable = income
-        # but basic_band and higher_band are computed from the passed pa
+        # eff_pa = 0 at this income, so all taxable bands are in play
         result = compute_tax(income, PERSONAL_ALLOWANCE, BASIC_RATE_LIMIT, HIGHER_RATE_LIMIT)
         assert result > 0
 
