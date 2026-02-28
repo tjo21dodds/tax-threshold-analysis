@@ -4,8 +4,9 @@ UK Income Tax Threshold Analysis
 Analyses income tax revenue under three threshold scenarios:
 
   1. Frozen Thresholds  – thresholds held at 2024/25 levels (fiscal drag)
-  2. Inflation-Uprated  – thresholds rise each year with CPI
+  2. CPI-Uprated  – thresholds rise each year with CPI
   3. Wage-Growth-Uprated – thresholds rise each year with Average Weekly Earnings
+  4. RPI-Uprated - theshold rise each year with RPI
 
 In all scenarios wage growth (AWE) drives the underlying income distribution
 upward — only the threshold policy differs between scenarios.
@@ -190,6 +191,14 @@ def build_scenarios(
             income_scale=wage_scale,
         )
 
+        # Scenario 4: thresholds uprated annually with RPI inflation
+        rev_rpi = total_revenue(
+            PERSONAL_ALLOWANCE * rpi_scale,
+            BASIC_RATE_LIMIT * rpi_scale,
+            HIGHER_RATE_LIMIT * rpi_scale,
+            income_scale=wage_scale
+        )
+
         # RPI spending baseline: base-year revenue grown at RPI — proxy for
         # expected government expenditure increases over time
         rpi_spending_baseline = base_rev * rpi_scale
@@ -197,8 +206,9 @@ def build_scenarios(
         rows.append({
             "Tax Year":                      year_label,
             "Frozen Thresholds (£bn)":       round(rev_frozen, 1),
-            "Inflation-Uprated (£bn)":       round(rev_inflation, 1),
+            "CPI-Uprated (£bn)":       round(rev_inflation, 1),
             "Wage-Growth-Uprated (£bn)":     round(rev_wages, 1),
+            "RPI-Uprated (£bn)":       round(rev_rpi,1),
             "RPI Spending Baseline (£bn)":   round(rpi_spending_baseline, 1),
         })
 
@@ -222,11 +232,14 @@ def print_results(df: pd.DataFrame) -> None:
 
     # Fiscal-drag columns (extra revenue because thresholds were not uprated)
     drag = df[["Tax Year"]].copy()
-    drag["vs Inflation (£bn)"] = (
-        df["Frozen Thresholds (£bn)"] - df["Inflation-Uprated (£bn)"]
+    drag["vs CPI (£bn)"] = (
+        df["Frozen Thresholds (£bn)"] - df["CPI-Uprated (£bn)"]
     ).round(1)
     drag["vs Wage Growth (£bn)"] = (
         df["Frozen Thresholds (£bn)"] - df["Wage-Growth-Uprated (£bn)"]
+    ).round(1)
+    drag["vs RPI (£bn)"] = (
+        df["Frozen Thresholds (£bn)"] - df["RPI-Uprated (£bn)"]
     ).round(1)
 
     print("Fiscal Drag (extra revenue from frozen thresholds vs each scenario):")
@@ -240,10 +253,12 @@ def plot_results(df: pd.DataFrame, output_path: str = "tax_revenue_scenarios.png
 
     ax.plot(df["Tax Year"], df["Frozen Thresholds (£bn)"],
             marker="o", linewidth=2, label="Frozen Thresholds")
-    ax.plot(df["Tax Year"], df["Inflation-Uprated (£bn)"],
-            marker="s", linewidth=2, label="Inflation-Uprated (CPI)")
+    ax.plot(df["Tax Year"], df["CPI-Uprated (£bn)"],
+            marker="s", linewidth=2, label="CPI-Uprated (CPI)")
     ax.plot(df["Tax Year"], df["Wage-Growth-Uprated (£bn)"],
             marker="^", linewidth=2, label="Wage-Growth-Uprated (AWE)")
+    ax.plot(df["Tax Year"], df["RPI-Uprated (£bn)"],
+            marker="*", linewidth=2, label="RPI-Uprated (RPI)")
     ax.plot(df["Tax Year"], df["RPI Spending Baseline (£bn)"],
             linewidth=2, linestyle="--", color="grey",
             label="RPI Spending Baseline (govt. expenditure proxy)")
@@ -281,13 +296,18 @@ def plot_rpi_comparison(
     )
     ax.plot(
         df["Tax Year"],
-        df["Inflation-Uprated (£bn)"] - baseline,
+        df["CPI-Uprated (£bn)"] - baseline,
         marker="s", linewidth=2, label="CPI-Uprated vs RPI Spending",
     )
     ax.plot(
         df["Tax Year"],
         df["Wage-Growth-Uprated (£bn)"] - baseline,
         marker="^", linewidth=2, label="Wage-Growth-Uprated vs RPI Spending",
+    )
+    ax.plot(
+        df["Tax Year"],
+        df["RPI-Uprated (£bn)"] - baseline,
+        marker="*", linewidth=2, label="RPI-Uprated vs RPI Spending"
     )
     ax.axhline(0, color="black", linewidth=0.8)
 

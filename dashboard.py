@@ -7,7 +7,7 @@ Run with:  streamlit run dashboard.py
 import matplotlib.pyplot as plt
 import streamlit as st
 
-from tax_analysis import (
+from tax_analysis.tax_analysis import (
     ANNUAL_INFLATION,
     ANNUAL_RPI,
     ANNUAL_WAGE_GROWTH,
@@ -99,12 +99,16 @@ with col1:
         marker="o", linewidth=2, label="Frozen Thresholds",
     )
     ax1.plot(
-        df["Tax Year"], df["Inflation-Uprated (£bn)"],
+        df["Tax Year"], df["CPI-Uprated (£bn)"],
         marker="s", linewidth=2, label=f"CPI-Uprated ({cpi_rate:.1%})",
     )
     ax1.plot(
         df["Tax Year"], df["Wage-Growth-Uprated (£bn)"],
         marker="^", linewidth=2, label=f"Wage-Growth-Uprated ({wage_rate:.1%})",
+    )
+    ax1.plot(
+        df["Tax Year"], df["RPI-Uprated (£bn)"],
+        marker="*", linewidth=2, label=f"RPI-Uprated ({rpi_rate:.1%})",
     )
     ax1.plot(
         df["Tax Year"], df["RPI Spending Baseline (£bn)"],
@@ -139,7 +143,7 @@ with col2:
     )
     ax2.plot(
         df["Tax Year"],
-        df["Inflation-Uprated (£bn)"] - baseline,
+        df["CPI-Uprated (£bn)"] - baseline,
         marker="s", linewidth=2,
         label=f"CPI ({cpi_rate:.1%}) vs RPI ({rpi_rate:.1%}) Spending",
     )
@@ -148,6 +152,12 @@ with col2:
         df["Wage-Growth-Uprated (£bn)"] - baseline,
         marker="^", linewidth=2,
         label=f"Wage-Growth ({wage_rate:.1%}) vs RPI ({rpi_rate:.1%}) Spending",
+    )
+    ax2.plot(
+        df["Tax Year"],
+        df["RPI-Uprated (£bn)"] - baseline,
+        marker="s", linewidth=2,
+        label=f"RPI ({rpi_rate:.1%}) vs RPI ({rpi_rate:.1%}) Spending",
     )
     ax2.axhline(0, color="black", linewidth=0.8)
     ax2.set_xlabel("Tax Year")
@@ -165,11 +175,14 @@ with st.expander("Show full data table"):
 
     drag = df[["Tax Year"]].copy()
     drag["Frozen vs CPI (£bn)"] = (
-        df["Frozen Thresholds (£bn)"] - df["Inflation-Uprated (£bn)"]
+        df["Frozen Thresholds (£bn)"] - df["CPI-Uprated (£bn)"]
     ).round(1)
     drag["Frozen vs Wages (£bn)"] = (
         df["Frozen Thresholds (£bn)"] - df["Wage-Growth-Uprated (£bn)"]
     ).round(1)
+    drag["Frozen vs RPI (£bn)"] = (
+        df["Frozen Thresholds (£bn)"] - df["RPI-Uprated (£bn)"]
+    )
 
     st.subheader("Fiscal Drag (extra revenue from frozen thresholds)")
     st.dataframe(drag, use_container_width=True)
