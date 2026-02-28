@@ -64,8 +64,8 @@ rpi_rate = (
         value=round(ANNUAL_RPI * 100, 1),
         step=0.1,
         help=(
-            "Retail Prices Index used to uprate thresholds in the RPI scenario "
-            "and as a proxy for expected expenditure increases."
+            "Retail Prices Index used as a proxy for expected government "
+            "expenditure increases. Drawn as a reference line on both charts."
         ),
     )
     / 100
@@ -87,6 +87,11 @@ col1, col2 = st.columns(2)
 
 with col1:
     st.subheader("Revenue by Threshold Scenario")
+    st.caption(
+        "All scenarios use the same wage growth rate — only the threshold "
+        "uprating policy differs.  The dashed grey line shows how government "
+        "spending is expected to grow (RPI proxy)."
+    )
 
     fig1, ax1 = plt.subplots(figsize=(7, 5))
     ax1.plot(
@@ -98,13 +103,13 @@ with col1:
         marker="s", linewidth=2, label=f"CPI-Uprated ({cpi_rate:.1%})",
     )
     ax1.plot(
-        df["Tax Year"], df["RPI-Uprated (£bn)"],
-        marker="D", linewidth=2, linestyle="--",
-        label=f"RPI-Uprated ({rpi_rate:.1%})",
-    )
-    ax1.plot(
         df["Tax Year"], df["Wage-Growth-Uprated (£bn)"],
         marker="^", linewidth=2, label=f"Wage-Growth-Uprated ({wage_rate:.1%})",
+    )
+    ax1.plot(
+        df["Tax Year"], df["RPI Spending Baseline (£bn)"],
+        linewidth=2, linestyle="--", color="grey",
+        label=f"RPI Spending Baseline ({rpi_rate:.1%})",
     )
     ax1.set_xlabel("Tax Year")
     ax1.set_ylabel("Income Tax Revenue (£ billion)")
@@ -117,32 +122,36 @@ with col1:
 # ── Plot 2 – revenue gap vs RPI ───────────────────────────────────────────────
 
 with col2:
-    st.subheader("Revenue vs RPI-Uprated Thresholds")
+    st.subheader("Revenue vs RPI Spending Baseline")
     st.caption(
-        "Positive values indicate more revenue than the RPI-uprated scenario "
-        "(additional fiscal drag relative to RPI expenditure growth)."
+        "Shows how much more (or less) revenue each scenario raises compared "
+        "to the RPI spending baseline.  Positive = revenue grows faster than "
+        "expected government expenditure."
     )
+
+    baseline = df["RPI Spending Baseline (£bn)"]
 
     fig2, ax2 = plt.subplots(figsize=(7, 5))
     ax2.plot(
         df["Tax Year"],
-        df["Frozen Thresholds (£bn)"] - df["RPI-Uprated (£bn)"],
-        marker="o", linewidth=2, label="Frozen vs RPI-Uprated",
+        df["Frozen Thresholds (£bn)"] - baseline,
+        marker="o", linewidth=2, label="Frozen Thresholds vs RPI Spending",
     )
     ax2.plot(
         df["Tax Year"],
-        df["Inflation-Uprated (£bn)"] - df["RPI-Uprated (£bn)"],
-        marker="s", linewidth=2, label=f"CPI ({cpi_rate:.1%}) vs RPI ({rpi_rate:.1%})",
+        df["Inflation-Uprated (£bn)"] - baseline,
+        marker="s", linewidth=2,
+        label=f"CPI ({cpi_rate:.1%}) vs RPI ({rpi_rate:.1%}) Spending",
     )
     ax2.plot(
         df["Tax Year"],
-        df["Wage-Growth-Uprated (£bn)"] - df["RPI-Uprated (£bn)"],
+        df["Wage-Growth-Uprated (£bn)"] - baseline,
         marker="^", linewidth=2,
-        label=f"Wage-Growth ({wage_rate:.1%}) vs RPI ({rpi_rate:.1%})",
+        label=f"Wage-Growth ({wage_rate:.1%}) vs RPI ({rpi_rate:.1%}) Spending",
     )
     ax2.axhline(0, color="black", linewidth=0.8)
     ax2.set_xlabel("Tax Year")
-    ax2.set_ylabel("Revenue Difference (£ billion)")
+    ax2.set_ylabel("Revenue minus RPI Spending Baseline (£ billion)")
     ax2.legend(fontsize=9)
     ax2.grid(True, linestyle="--", alpha=0.6)
     plt.tight_layout()
@@ -157,9 +166,6 @@ with st.expander("Show full data table"):
     drag = df[["Tax Year"]].copy()
     drag["Frozen vs CPI (£bn)"] = (
         df["Frozen Thresholds (£bn)"] - df["Inflation-Uprated (£bn)"]
-    ).round(1)
-    drag["Frozen vs RPI (£bn)"] = (
-        df["Frozen Thresholds (£bn)"] - df["RPI-Uprated (£bn)"]
     ).round(1)
     drag["Frozen vs Wages (£bn)"] = (
         df["Frozen Thresholds (£bn)"] - df["Wage-Growth-Uprated (£bn)"]

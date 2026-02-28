@@ -190,27 +190,23 @@ class TestBuildScenariosRPI:
     def setup_method(self):
         self.df = build_scenarios()
 
-    def test_rpi_column_present(self):
-        """RPI-Uprated column should be present in the output."""
-        assert "RPI-Uprated (£bn)" in self.df.columns
+    def test_rpi_spending_baseline_column_present(self):
+        """RPI Spending Baseline column should be present in the output."""
+        assert "RPI Spending Baseline (£bn)" in self.df.columns
 
-    def test_rpi_uprated_between_cpi_and_wages(self):
-        """With default rates (RPI > CPI, RPI < wage growth), RPI-uprated revenue
-        should be between inflation-uprated and wage-growth-uprated revenue."""
-        for _, row in self.df.iterrows():
-            assert row["RPI-Uprated (£bn)"] <= row["Inflation-Uprated (£bn)"], (
-                f"RPI-uprated should be <= CPI-uprated for {row['Tax Year']}"
-            )
-            assert row["RPI-Uprated (£bn)"] >= row["Wage-Growth-Uprated (£bn)"], (
-                f"RPI-uprated should be >= wage-uprated for {row['Tax Year']}"
-            )
+    def test_rpi_uprated_scenario_column_absent(self):
+        """RPI should not appear as a threshold scenario column."""
+        assert "RPI-Uprated (£bn)" not in self.df.columns
 
-    def test_frozen_exceeds_rpi_uprated(self):
-        """Frozen thresholds should raise more revenue than RPI-uprated thresholds."""
-        for _, row in self.df.iterrows():
-            assert row["Frozen Thresholds (£bn)"] >= row["RPI-Uprated (£bn)"], (
-                f"Failed for {row['Tax Year']}"
-            )
+    def test_rpi_spending_baseline_equals_frozen_at_base_year(self):
+        """At t=0 (base year) the RPI spending baseline equals the frozen-threshold revenue."""
+        base_row = self.df.iloc[0]
+        assert base_row["RPI Spending Baseline (£bn)"] == base_row["Frozen Thresholds (£bn)"]
+
+    def test_rpi_spending_baseline_grows_over_time(self):
+        """RPI spending baseline should increase each year."""
+        values = self.df["RPI Spending Baseline (£bn)"].tolist()
+        assert all(values[i] <= values[i + 1] for i in range(len(values) - 1))
 
     def test_custom_rates_accepted(self):
         """build_scenarios() should accept custom rpi/cpi/wage rate arguments."""
