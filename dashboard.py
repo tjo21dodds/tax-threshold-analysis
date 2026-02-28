@@ -182,7 +182,7 @@ with st.expander("Show full data table"):
     ).round(1)
     drag["Frozen vs RPI (£bn)"] = (
         df["Frozen Thresholds (£bn)"] - df["RPI-Uprated (£bn)"]
-    )
+    ).round(1)
 
     st.subheader("Fiscal Drag (extra revenue from frozen thresholds)")
     st.dataframe(drag, use_container_width=True)

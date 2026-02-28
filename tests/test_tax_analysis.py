@@ -168,6 +168,7 @@ class TestBuildScenarios:
             assert row["Frozen Thresholds (£bn)"] >= row["CPI-Uprated (£bn)"], (
                 f"Failed for {row['Tax Year']}"
             )
+
     def test_frozen_exceeds_rpi_uprated(self):
         """Fiscal drag: frozen thresholds raise more revenue than RPI-uprated ones."""
         for _, row in self.df.iterrows():
@@ -181,12 +182,14 @@ class TestBuildScenarios:
             assert row["CPI-Uprated (£bn)"] >= row["Wage-Growth-Uprated (£bn)"], (
                 f"Failed for {row['Tax Year']}"
             )
+            
     def test_rpi_uprated_exceeds_wage_growth_uprated(self):
         """RPI uprating raises more revenue than wage uprating (rpi < wage growth)."""
         for _, row in self.df.iterrows():
             assert row["RPI-Uprated (£bn)"] >= row["Wage-Growth-Uprated (£bn)"], (
                 f"Failed for {row['Tax Year']}"
             )
+
     def test_revenue_grows_over_time_for_frozen_scenario(self):
         """Frozen thresholds + wage growth → revenue increases each year."""
         revenues = self.df["Frozen Thresholds (£bn)"].tolist()
