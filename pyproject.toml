@@ -1,3 +1,20 @@
+[project]
+name = "tax-threshold-analysis"
+version = "0.1.0"
+dependencies = [
+    "pandas>=2.0,<3.0",
+    "numpy>=1.24,<3.0",
+    "matplotlib>=3.7,<4.0",
+    "scipy>=1.11,<2.0",
+    "streamlit>=1.30,<2.0",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "ruff"
+]
+
 [tool.ruff]
 line-length = 120
 
