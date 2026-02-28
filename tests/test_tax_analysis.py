@@ -22,6 +22,7 @@ from tax_analysis.tax_analysis import (
 
 # ── effective_personal_allowance ─────────────────────────────────────────────
 
+
 class TestEffectivePersonalAllowance:
     def test_below_taper_threshold(self):
         """PA is unchanged for income at or below £100k."""
@@ -49,6 +50,7 @@ class TestEffectivePersonalAllowance:
 
 # ── compute_tax ───────────────────────────────────────────────────────────────
 
+
 class TestComputeTax:
     def test_below_personal_allowance(self):
         """No tax is due on income at or below the personal allowance."""
@@ -69,8 +71,7 @@ class TestComputeTax:
         """Income just above the basic-rate limit should attract higher-rate tax."""
         income = BASIC_RATE_LIMIT + 10_000  # £60,270
         basic_taxable = BASIC_RATE_LIMIT - PERSONAL_ALLOWANCE
-        expected = (basic_taxable * TAX_RATES["basic"]
-                    + 10_000 * TAX_RATES["higher"])
+        expected = basic_taxable * TAX_RATES["basic"] + 10_000 * TAX_RATES["higher"]
         result = compute_tax(income, PERSONAL_ALLOWANCE, BASIC_RATE_LIMIT, HIGHER_RATE_LIMIT)
         assert math.isclose(result, expected, abs_tol=1e-6)
 
@@ -83,19 +84,20 @@ class TestComputeTax:
 
     def test_higher_income_pays_more_tax(self):
         """A higher income should always result in at least as much tax."""
-        tax_low  = compute_tax(30_000, PERSONAL_ALLOWANCE, BASIC_RATE_LIMIT, HIGHER_RATE_LIMIT)
+        tax_low = compute_tax(30_000, PERSONAL_ALLOWANCE, BASIC_RATE_LIMIT, HIGHER_RATE_LIMIT)
         tax_high = compute_tax(80_000, PERSONAL_ALLOWANCE, BASIC_RATE_LIMIT, HIGHER_RATE_LIMIT)
         assert tax_high > tax_low
 
     def test_frozen_vs_uprated_threshold(self):
         """Raising the personal allowance should reduce tax for the same income."""
         income = 40_000
-        tax_frozen  = compute_tax(income, 12_570, BASIC_RATE_LIMIT, HIGHER_RATE_LIMIT)
+        tax_frozen = compute_tax(income, 12_570, BASIC_RATE_LIMIT, HIGHER_RATE_LIMIT)
         tax_uprated = compute_tax(income, 14_000, BASIC_RATE_LIMIT, HIGHER_RATE_LIMIT)
         assert tax_uprated < tax_frozen
 
 
 # ── total_revenue ─────────────────────────────────────────────────────────────
+
 
 class TestTotalRevenue:
     def test_returns_positive_value(self):
@@ -109,32 +111,31 @@ class TestTotalRevenue:
 
     def test_higher_wage_scale_raises_revenue(self):
         """Wage growth increases total taxable income and hence revenue."""
-        rev_base  = total_revenue(PERSONAL_ALLOWANCE, BASIC_RATE_LIMIT, HIGHER_RATE_LIMIT, income_scale=1.0)
+        rev_base = total_revenue(PERSONAL_ALLOWANCE, BASIC_RATE_LIMIT, HIGHER_RATE_LIMIT, income_scale=1.0)
         rev_grown = total_revenue(PERSONAL_ALLOWANCE, BASIC_RATE_LIMIT, HIGHER_RATE_LIMIT, income_scale=1.2)
         assert rev_grown > rev_base
 
     def test_higher_pa_reduces_revenue(self):
         """Raising the personal allowance reduces total revenue (all else equal)."""
-        rev_low_pa  = total_revenue(12_570, BASIC_RATE_LIMIT, HIGHER_RATE_LIMIT)
+        rev_low_pa = total_revenue(12_570, BASIC_RATE_LIMIT, HIGHER_RATE_LIMIT)
         rev_high_pa = total_revenue(15_000, BASIC_RATE_LIMIT, HIGHER_RATE_LIMIT)
         assert rev_high_pa < rev_low_pa
 
     def test_frozen_exceeds_wage_uprated(self):
         """Frozen thresholds should raise more revenue than wage-uprated thresholds."""
         wage_scale = 1.04
-        rev_frozen = total_revenue(
-            PERSONAL_ALLOWANCE, BASIC_RATE_LIMIT, HIGHER_RATE_LIMIT, income_scale=wage_scale
-        )
+        rev_frozen = total_revenue(PERSONAL_ALLOWANCE, BASIC_RATE_LIMIT, HIGHER_RATE_LIMIT, income_scale=wage_scale)
         rev_uprated = total_revenue(
             PERSONAL_ALLOWANCE * wage_scale,
-            BASIC_RATE_LIMIT   * wage_scale,
-            HIGHER_RATE_LIMIT  * wage_scale,
+            BASIC_RATE_LIMIT * wage_scale,
+            HIGHER_RATE_LIMIT * wage_scale,
             income_scale=wage_scale,
         )
         assert rev_frozen > rev_uprated
 
 
 # ── build_scenarios ───────────────────────────────────────────────────────────
+
 
 class TestBuildScenarios:
     def setup_method(self):
@@ -152,7 +153,7 @@ class TestBuildScenarios:
             "Frozen Thresholds (£bn)",
             "CPI-Uprated (£bn)",
             "Wage-Growth-Uprated (£bn)",
-            "RPI-Uprated (£bn)"
+            "RPI-Uprated (£bn)",
         }
         assert expected_cols.issubset(set(self.df.columns))
 
@@ -165,28 +166,23 @@ class TestBuildScenarios:
     def test_frozen_exceeds_cpi_uprated(self):
         """Fiscal drag: frozen thresholds raise more revenue than CPI-uprated ones."""
         for _, row in self.df.iterrows():
-            assert row["Frozen Thresholds (£bn)"] >= row["CPI-Uprated (£bn)"], (
-                f"Failed for {row['Tax Year']}"
-            )
+            assert row["Frozen Thresholds (£bn)"] >= row["CPI-Uprated (£bn)"], f"Failed for {row['Tax Year']}"
+
     def test_frozen_exceeds_rpi_uprated(self):
         """Fiscal drag: frozen thresholds raise more revenue than RPI-uprated ones."""
         for _, row in self.df.iterrows():
-            assert row["Frozen Thresholds (£bn)"] >= row["RPI-Uprated (£bn)"], (
-                f"Failed for {row['Tax Year']}"
-            )
+            assert row["Frozen Thresholds (£bn)"] >= row["RPI-Uprated (£bn)"], f"Failed for {row['Tax Year']}"
 
     def test_cpi_uprated_exceeds_wage_growth_uprated(self):
         """CPI uprating raises more revenue than wage uprating (cpi < wage growth)."""
         for _, row in self.df.iterrows():
-            assert row["CPI-Uprated (£bn)"] >= row["Wage-Growth-Uprated (£bn)"], (
-                f"Failed for {row['Tax Year']}"
-            )
+            assert row["CPI-Uprated (£bn)"] >= row["Wage-Growth-Uprated (£bn)"], f"Failed for {row['Tax Year']}"
+
     def test_rpi_uprated_exceeds_wage_growth_uprated(self):
         """RPI uprating raises more revenue than wage uprating (rpi < wage growth)."""
         for _, row in self.df.iterrows():
-            assert row["RPI-Uprated (£bn)"] >= row["Wage-Growth-Uprated (£bn)"], (
-                f"Failed for {row['Tax Year']}"
-            )
+            assert row["RPI-Uprated (£bn)"] >= row["Wage-Growth-Uprated (£bn)"], f"Failed for {row['Tax Year']}"
+
     def test_revenue_grows_over_time_for_frozen_scenario(self):
         """Frozen thresholds + wage growth → revenue increases each year."""
         revenues = self.df["Frozen Thresholds (£bn)"].tolist()

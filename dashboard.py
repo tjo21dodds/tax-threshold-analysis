@@ -72,10 +72,7 @@ rpi_rate = (
 )
 
 st.sidebar.markdown("---")
-st.sidebar.caption(
-    f"Base year: 2024/25 · {NUM_TAXPAYERS:,} taxpayers · "
-    f"{PROJECTION_YEARS}-year projection"
-)
+st.sidebar.caption(f"Base year: 2024/25 · {NUM_TAXPAYERS:,} taxpayers · {PROJECTION_YEARS}-year projection")
 
 # ── Build scenarios ───────────────────────────────────────────────────────────
 
@@ -95,24 +92,39 @@ with col1:
 
     fig1, ax1 = plt.subplots(figsize=(7, 5))
     ax1.plot(
-        df["Tax Year"], df["Frozen Thresholds (£bn)"],
-        marker="o", linewidth=2, label="Frozen Thresholds",
+        df["Tax Year"],
+        df["Frozen Thresholds (£bn)"],
+        marker="o",
+        linewidth=2,
+        label="Frozen Thresholds",
     )
     ax1.plot(
-        df["Tax Year"], df["CPI-Uprated (£bn)"],
-        marker="s", linewidth=2, label=f"CPI-Uprated ({cpi_rate:.1%})",
+        df["Tax Year"],
+        df["CPI-Uprated (£bn)"],
+        marker="s",
+        linewidth=2,
+        label=f"CPI-Uprated ({cpi_rate:.1%})",
     )
     ax1.plot(
-        df["Tax Year"], df["Wage-Growth-Uprated (£bn)"],
-        marker="^", linewidth=2, label=f"Wage-Growth-Uprated ({wage_rate:.1%})",
+        df["Tax Year"],
+        df["Wage-Growth-Uprated (£bn)"],
+        marker="^",
+        linewidth=2,
+        label=f"Wage-Growth-Uprated ({wage_rate:.1%})",
     )
     ax1.plot(
-        df["Tax Year"], df["RPI-Uprated (£bn)"],
-        marker="*", linewidth=2, label=f"RPI-Uprated ({rpi_rate:.1%})",
+        df["Tax Year"],
+        df["RPI-Uprated (£bn)"],
+        marker="*",
+        linewidth=2,
+        label=f"RPI-Uprated ({rpi_rate:.1%})",
     )
     ax1.plot(
-        df["Tax Year"], df["RPI Spending Baseline (£bn)"],
-        linewidth=2, linestyle="--", color="grey",
+        df["Tax Year"],
+        df["RPI Spending Baseline (£bn)"],
+        linewidth=2,
+        linestyle="--",
+        color="grey",
         label=f"RPI Spending Baseline ({rpi_rate:.1%})",
     )
     ax1.set_xlabel("Tax Year")
@@ -139,24 +151,29 @@ with col2:
     ax2.plot(
         df["Tax Year"],
         df["Frozen Thresholds (£bn)"] - baseline,
-        marker="o", linewidth=2, label="Frozen Thresholds vs RPI Spending",
+        marker="o",
+        linewidth=2,
+        label="Frozen Thresholds vs RPI Spending",
     )
     ax2.plot(
         df["Tax Year"],
         df["CPI-Uprated (£bn)"] - baseline,
-        marker="s", linewidth=2,
+        marker="s",
+        linewidth=2,
         label=f"CPI ({cpi_rate:.1%}) vs RPI ({rpi_rate:.1%}) Spending",
     )
     ax2.plot(
         df["Tax Year"],
         df["Wage-Growth-Uprated (£bn)"] - baseline,
-        marker="^", linewidth=2,
+        marker="^",
+        linewidth=2,
         label=f"Wage-Growth ({wage_rate:.1%}) vs RPI ({rpi_rate:.1%}) Spending",
     )
     ax2.plot(
         df["Tax Year"],
         df["RPI-Uprated (£bn)"] - baseline,
-        marker="s", linewidth=2,
+        marker="s",
+        linewidth=2,
         label=f"RPI ({rpi_rate:.1%}) vs RPI ({rpi_rate:.1%}) Spending",
     )
     ax2.axhline(0, color="black", linewidth=0.8)
@@ -174,15 +191,9 @@ with st.expander("Show full data table"):
     st.dataframe(df, use_container_width=True)
 
     drag = df[["Tax Year"]].copy()
-    drag["Frozen vs CPI (£bn)"] = (
-        df["Frozen Thresholds (£bn)"] - df["CPI-Uprated (£bn)"]
-    ).round(1)
-    drag["Frozen vs Wages (£bn)"] = (
-        df["Frozen Thresholds (£bn)"] - df["Wage-Growth-Uprated (£bn)"]
-    ).round(1)
-    drag["Frozen vs RPI (£bn)"] = (
-        df["Frozen Thresholds (£bn)"] - df["RPI-Uprated (£bn)"]
-    )
+    drag["Frozen vs CPI (£bn)"] = (df["Frozen Thresholds (£bn)"] - df["CPI-Uprated (£bn)"]).round(1)
+    drag["Frozen vs Wages (£bn)"] = (df["Frozen Thresholds (£bn)"] - df["Wage-Growth-Uprated (£bn)"]).round(1)
+    drag["Frozen vs RPI (£bn)"] = (df["Frozen Thresholds (£bn)"] - df["RPI-Uprated (£bn)"]).round(1)
 
     st.subheader("Fiscal Drag (extra revenue from frozen thresholds)")
     st.dataframe(drag, use_container_width=True)
